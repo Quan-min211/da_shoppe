@@ -1,0 +1,58 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ===== Virtual Environment =====
+.venv/
+venv/
+ENV/
+
+# ===== Environment Variables =====
+.env
+.env.local
+.env.*.local
+
+# ===== Data Files =====
+data/
+*.jsonl
+*.csv
+*.parquet
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Logs =====
+logs/
+*.log
+
+# ===== Docker =====
+docker-compose.override.yml
+
+# ===== Node (Frontend) =====
+node_modules/
+.next/
+out/
+
+# ===== Jupyter =====
+.ipynb_checkpoints/
+
+# ===== Testing =====
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
