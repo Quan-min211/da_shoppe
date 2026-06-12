@@ -91,34 +91,55 @@ def cmd_scrape(args: argparse.Namespace) -> None:
             for line in kf.read_text(encoding="utf-8").splitlines()
             if line.strip() and not line.strip().startswith("#")
         ]
-    else:
-        logger.error("❌ Phải cung cấp --keyword hoặc --keywords-file")
-        sys.exit(1)
-
     if not keywords:
-        logger.error("❌ Không có keyword nào để scrape")
-        sys.exit(1)
+        # Nhập tương tác nếu không cung cấp flag
+        try:
+            kw_input = input("👉 Nhập từ khóa tìm kiếm (VD: 'chuột máy tính'): ").strip()
+            if kw_input:
+                keywords = [kw_input]
+            else:
+                logger.error("❌ Không có keyword nào để scrape")
+                sys.exit(1)
+        except KeyboardInterrupt:
+            print("\nĐã hủy.")
+            sys.exit(0)
 
     max_pages = args.pages or settings.MAX_PAGES_PER_KEYWORD
 
     logger.info(f"🚀 Bắt đầu scrape {len(keywords)} keywords, max {max_pages} pages/keyword")
 
-    # Init writer
-    writer = JsonlWriter(base_dir=settings.RAW_DATA_DIR, data_type="products")
+    # Init writers
+    product_writer = JsonlWriter(base_dir=settings.RAW_DATA_DIR, data_type="products")
+    review_writer = JsonlWriter(base_dir=settings.RAW_DATA_DIR, data_type="reviews") if args.with_reviews else None
+
+    max_reviews = args.max_reviews if args.max_reviews else settings.MAX_REVIEWS_PER_PRODUCT
 
     # Run scraper
     with ShopeeScraper() as scraper:
         if len(keywords) == 1:
-            products = scraper.scrape_products(keywords[0], max_pages=max_pages)
+            kw = keywords[0]
+            if args.with_reviews:
+                products, reviews = scraper.scrape_products_with_reviews(
+                    kw, max_pages=max_pages, max_reviews=max_reviews
+                )
+                if reviews:
+                    rev_path = review_writer.write(reviews, keyword=f"{kw}_reviews")
+                    logger.success(f"📁 Reviews Output: {rev_path}")
+            else:
+                products = scraper.scrape_products(kw, max_pages=max_pages)
+                
             if products:
-                output_path = writer.write(products, keyword=keywords[0])
-                logger.success(f"📁 Output: {output_path}")
+                output_path = product_writer.write(products, keyword=kw)
+                logger.success(f"📁 Products Output: {output_path}")
             else:
                 logger.warning("⚠️ Không thu thập được sản phẩm nào")
         else:
+            if args.with_reviews:
+                logger.error("❌ Hiện tại --with-reviews chỉ hỗ trợ 1 keyword mỗi lần chạy.")
+                sys.exit(1)
             results = scraper.scrape_multiple_keywords(keywords, max_pages=max_pages)
-            output_files = writer.write_multiple(results)
-            logger.success(f"📁 Đã ghi {len(output_files)} files")
+            output_files = product_writer.write_multiple(results)
+            logger.success(f"📁 Đã ghi {len(output_files)} files products")
 
     logger.info("🏁 Hoàn tất!")
 
@@ -160,6 +181,17 @@ def main():
         type=int,
         default=None,
         help="Số trang tối đa per keyword (default: from settings)",
+    )
+    scrape_parser.add_argument(
+        "--with-reviews",
+        action="store_true",
+        help="Cào thêm đánh giá (reviews) cho từng sản phẩm",
+    )
+    scrape_parser.add_argument(
+        "--max-reviews",
+        type=int,
+        default=None,
+        help="Số đánh giá tối đa mỗi sản phẩm (default: from settings)",
     )
     scrape_parser.set_defaults(func=cmd_scrape)
 

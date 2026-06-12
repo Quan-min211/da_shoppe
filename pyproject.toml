@@ -9,13 +9,10 @@ include = ["ingestion*"]
 name = "ecommerce-analytics-platform"
 version = "0.1.0"
 description = "Vietnam E-Commerce Analytics Platform — Data Lakehouse + Full-Stack Analytics"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 readme = "README.md"
 
 dependencies = [
-    # === Scraping ===
-    "playwright>=1.40.0",
-
     # === Data Validation ===
     "pydantic>=2.5.0",
     "pydantic-settings>=2.1.0",

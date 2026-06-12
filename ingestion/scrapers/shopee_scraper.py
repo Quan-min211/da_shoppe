@@ -23,6 +23,7 @@ from playwright.sync_api import sync_playwright, Browser, Page, Response
 
 from ingestion.scrapers.base_scraper import BaseScraper
 from ingestion.schemas.product_schema import ProductSchema
+from ingestion.schemas.review_schema import ReviewSchema
 from ingestion.config import get_settings
 
 
@@ -123,6 +124,34 @@ class ShopeeScraper(BaseScraper):
 
         except Exception as e:
             self.logger.debug(f"Không thể parse response: {e}")
+
+    def _handle_ratings_response(
+        self, response: Response, shop_id: int, item_id: int, reviews_list: list, event: threading.Event
+    ) -> None:
+        """Callback xử lý API response từ Shopee get_ratings."""
+        if self.API_GET_RATINGS not in response.url:
+            return
+        if response.status != 200:
+            return
+
+        try:
+            data = response.json()
+            ratings = data.get("data", {}).get("ratings")
+            if not ratings:
+                return
+
+            for r in ratings:
+                try:
+                    review_obj = ReviewSchema.from_shopee_rating(r, item_id, shop_id)
+                    reviews_list.append(review_obj.model_dump(mode="json"))
+                except Exception as e:
+                    self.logger.warning(f"⚠️ Skip review (validation failed): {e}")
+
+            # Đã nhận được mẻ review đầu tiên (thường là 50 cái)
+            event.set()
+
+        except Exception as e:
+            self.logger.debug(f"Không thể parse ratings response: {e}")
 
     def scrape_products(self, keyword: str, max_pages: int = 1) -> list[dict[str, Any]]:
         """Thu thập sản phẩm theo keyword từ Shopee.
@@ -242,3 +271,89 @@ class ShopeeScraper(BaseScraper):
         )
 
         return results
+
+    def scrape_reviews(self, shop_id: int, item_id: int, max_reviews: int = 100) -> list[dict[str, Any]]:
+        """Thu thập danh sách đánh giá của một sản phẩm.
+
+        Sử dụng Network Interception thay vì fetch() để qua mặt anti-bot Shopee.
+
+        Args:
+            shop_id: ID của shop
+            item_id: ID của sản phẩm
+            max_reviews: Số lượng đánh giá tối đa
+
+        Returns:
+            List of raw review dicts
+        """
+        if not self._browser:
+            raise RuntimeError("Chưa kết nối. Gọi connect() trước.")
+
+        self.logger.info(f"⭐ Bắt đầu scrape reviews: item_id={item_id}")
+        
+        context = self._browser.contexts[0]
+        page = context.new_page()
+        reviews = []
+        event = threading.Event()
+        
+        # Gắn listener
+        page.on(
+            "response",
+            lambda resp: self._handle_ratings_response(resp, shop_id, item_id, reviews, event),
+        )
+        
+        product_url = f"https://shopee.vn/product/{shop_id}/{item_id}"
+        
+        try:
+            page.goto(product_url, wait_until="domcontentloaded", timeout=30000)
+            
+            # Scroll xuống phần Đánh giá để kích hoạt API get_ratings
+            for _ in range(5):
+                page.evaluate("window.scrollBy(0, 1000)")
+                page.wait_for_timeout(1000)
+                if event.is_set():
+                    break
+                    
+            event.wait(timeout=10)
+            
+        except Exception as e:
+            self.logger.warning(f"Lỗi khi mở trang sản phẩm: {e}")
+        finally:
+            page.close()
+            
+        # Giới hạn số lượng
+        final_reviews = reviews[:max_reviews]
+        self.logger.success(f"✅ Đã cào {len(final_reviews)} reviews cho item {item_id}")
+        return final_reviews
+
+    def scrape_products_with_reviews(
+        self, keyword: str, max_pages: int = 1, max_reviews: int = 100
+    ) -> tuple[list[dict], list[dict]]:
+        """Thu thập cả sản phẩm lẫn reviews cho sản phẩm đó.
+        
+        Returns:
+            Tuple (danh sách products, danh sách tất cả reviews)
+        """
+        products = self.scrape_products(keyword, max_pages)
+        all_reviews = []
+        
+        if not products:
+            return products, all_reviews
+            
+        total = len(products)
+        self.logger.info(f"🔄 Sẽ cào reviews cho {total} sản phẩm vừa tìm được...")
+        
+        for i, prod in enumerate(products, 1):
+            shop_id = prod.get("shop_id")
+            item_id = prod.get("product_id")
+            
+            if not shop_id or not item_id:
+                continue
+                
+            self.logger.info(f"[{i}/{total}] Sản phẩm: {prod.get('name', '')[:30]}...")
+            reviews = self.scrape_reviews(shop_id, item_id, max_reviews)
+            all_reviews.extend(reviews)
+            
+            if i < total:
+                time.sleep(self.request_delay)
+                
+        return products, all_reviews

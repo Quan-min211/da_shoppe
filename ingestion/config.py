@@ -46,6 +46,9 @@ class Settings:
         self.MAX_PAGES_PER_KEYWORD: int = int(
             os.getenv("MAX_PAGES_PER_KEYWORD", "5")
         )
+        self.MAX_REVIEWS_PER_PRODUCT: int = int(
+            os.getenv("MAX_REVIEWS_PER_PRODUCT", "100")
+        )
         self.PAGE_LOAD_TIMEOUT: int = int(
             os.getenv("PAGE_LOAD_TIMEOUT", "30000")
         )

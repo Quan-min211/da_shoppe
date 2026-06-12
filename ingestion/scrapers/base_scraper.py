@@ -37,6 +37,20 @@ class BaseScraper(ABC):
         ...
 
     @abstractmethod
+    def scrape_reviews(self, shop_id: int, item_id: int, max_reviews: int = 100) -> list[dict[str, Any]]:
+        """Thu thập danh sách đánh giá của một sản phẩm.
+
+        Args:
+            shop_id: ID của shop
+            item_id: ID của sản phẩm
+            max_reviews: Số lượng đánh giá tối đa muốn thu thập
+
+        Returns:
+            List of raw review dicts
+        """
+        ...
+
+    @abstractmethod
     def close(self) -> None:
         """Đóng kết nối, giải phóng resources."""
         ...
