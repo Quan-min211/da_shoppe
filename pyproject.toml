@@ -32,8 +32,8 @@ dev = [
     "black>=23.0.0",
 ]
 processing = [
-    "pyspark>=3.5.0",
-    "delta-spark>=3.0.0",
+    "pyspark==3.5.1",
+    "delta-spark==3.1.0",
 ]
 backend = [
     "fastapi>=0.104.0",
