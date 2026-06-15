@@ -44,6 +44,9 @@ def clean_reviews():
     # Thêm timestamp processing_time
     df_clean = df_clean.withColumn("processed_at", current_timestamp())
 
+    # Đếm trước khi ghi (tránh đọc lại Delta sau khi write)
+    row_count = df_clean.count()
+
     # Ghi ra Silver
     logger.info(f"Ghi Silver Reviews tới: {silver_path}")
     (
@@ -52,10 +55,7 @@ def clean_reviews():
         .mode("overwrite")
         .save(silver_path)
     )
-    logger.success(f"✅ Đã ghi Silver Reviews ({df_clean.count()} rows)")
-    
-    # Hiển thị vài dòng
-    df_clean.select("review_id", "product_id", "rating", "review_text").show(5, truncate=40)
+    logger.success(f"✅ Đã ghi Silver Reviews ({row_count} rows)")
     
     spark.stop()
 
