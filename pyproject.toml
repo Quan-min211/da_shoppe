@@ -3,7 +3,7 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["ingestion*"]
+include = ["ingestion*", "backend*", "processing*"]
 
 [project]
 name = "ecommerce-analytics-platform"
@@ -39,6 +39,8 @@ backend = [
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",
     "sqlalchemy>=2.0.0",
+    "pandas>=2.1.0",
+    "pyarrow>=14.0.0",
 ]
 ml = [
     "underthesea>=6.8.0",

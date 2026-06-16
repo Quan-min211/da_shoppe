@@ -1,0 +1,54 @@
+"""
+Router cho Analytics API.
+Endpoints: GET /api/analytics/overview, /top-products, /rating-distribution
+"""
+
+from fastapi import APIRouter, Query
+from backend.app.services.data_service import data_service
+from backend.app.models.schemas import AnalyticsOverview, RatingDistribution
+
+router = APIRouter(prefix="/api/analytics", tags=["Analytics"])
+
+
+@router.get("/overview", response_model=AnalyticsOverview, summary="Tổng quan thống kê")
+async def get_overview():
+    """
+    Trả về các chỉ số tổng quan:
+    - Tổng số sản phẩm
+    - Giá trung bình
+    - Điểm đánh giá trung bình
+    - Tổng số lượt đánh giá
+    """
+    return data_service.get_overview()
+
+
+@router.get("/top-products", summary="Top sản phẩm")
+async def get_top_products(
+    metric: str = Query(
+        "avg_rating", 
+        description="Xếp hạng theo: avg_rating, total_reviews, sold_count"
+    ),
+    limit: int = Query(10, ge=1, le=50, description="Số lượng sản phẩm trả về"),
+):
+    """
+    Top N sản phẩm theo metric chọn.
+    
+    Metrics:
+    - **avg_rating**: Điểm đánh giá trung bình cao nhất
+    - **total_reviews**: Nhiều lượt đánh giá nhất
+    - **sold_count**: Bán chạy nhất
+    """
+    return data_service.get_top_products(metric=metric, limit=limit)
+
+
+@router.get(
+    "/rating-distribution", 
+    response_model=RatingDistribution, 
+    summary="Phân bố đánh giá"
+)
+async def get_rating_distribution():
+    """
+    Phân bố đánh giá theo số sao (1-5) trên toàn bộ sản phẩm.
+    Dùng để vẽ biểu đồ cột (bar chart) trên dashboard.
+    """
+    return data_service.get_rating_distribution()
