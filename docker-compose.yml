@@ -1,0 +1,46 @@
+# ======================================================
+# Docker Compose — E-Commerce Analytics Platform
+# ======================================================
+# Chạy: docker compose up --build
+# Dừng: docker compose down
+# ======================================================
+
+services:
+  # ---- Backend API (FastAPI) ----
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: ecom-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount thư mục data để backend đọc Parquet files
+      - ./data:/app/data:ro
+    environment:
+      - PYTHONPATH=/app
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # ---- Frontend Dashboard (Next.js) ----
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8000
+    container_name: ecom-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
