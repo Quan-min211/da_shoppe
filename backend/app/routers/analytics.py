@@ -52,3 +52,14 @@ async def get_rating_distribution():
     Dùng để vẽ biểu đồ cột (bar chart) trên dashboard.
     """
     return data_service.get_rating_distribution()
+
+
+@router.get("/sentiment-overview", summary="Tổng quan cảm xúc")
+async def get_sentiment_overview():
+    """
+    Thống kê cảm xúc review (NLP Sentiment Analysis):
+    - Số lượng và tỷ lệ % review **tích cực** (positive)
+    - Số lượng và tỷ lệ % review **tiêu cực** (negative)
+    - Số lượng và tỷ lệ % review **trung lập** (neutral)
+    """
+    return data_service.get_sentiment_overview()

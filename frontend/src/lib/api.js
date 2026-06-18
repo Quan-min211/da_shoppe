@@ -34,6 +34,10 @@ export async function getRatingDistribution() {
   return fetchAPI("/api/analytics/rating-distribution");
 }
 
+export async function getSentimentOverview() {
+  return fetchAPI("/api/analytics/sentiment-overview");
+}
+
 // === Products ===
 
 export async function getProducts({ page = 1, pageSize = 20, search = "", sortBy = "avg_rating", sortOrder = "desc" } = {}) {

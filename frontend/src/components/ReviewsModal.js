@@ -99,8 +99,24 @@ export default function ReviewsModal({ productId, productName, onClose }) {
                       {review.author_name || review.username || "Ẩn danh"}
                     </span>
                   </div>
-                  <div className="flex items-center gap-0.5">
-                    {renderStars(review.rating_star || review.rating)}
+                  <div className="flex items-center gap-2">
+                    {/* Sentiment Badge */}
+                    {review.sentiment_label && (
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                        review.sentiment_label === "positive"
+                          ? "bg-emerald-50 text-emerald-600"
+                          : review.sentiment_label === "negative"
+                          ? "bg-red-50 text-red-500"
+                          : "bg-amber-50 text-amber-600"
+                      }`}>
+                        {review.sentiment_label === "positive" ? "🟢 Tích cực"
+                          : review.sentiment_label === "negative" ? "🔴 Tiêu cực"
+                          : "🟡 Trung lập"}
+                      </span>
+                    )}
+                    <div className="flex items-center gap-0.5">
+                      {renderStars(review.rating_star || review.rating)}
+                    </div>
                   </div>
                 </div>
 

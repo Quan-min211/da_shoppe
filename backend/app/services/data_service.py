@@ -6,7 +6,7 @@ Hoàn toàn không cần Spark/JVM — khởi động nhanh, nhẹ, ổn định
 import pandas as pd
 from pathlib import Path
 from loguru import logger
-from backend.app.config import GOLD_PRODUCT_METRICS_PATH, SILVER_REVIEWS_PATH
+from backend.app.config import GOLD_PRODUCT_METRICS_PATH, GOLD_SENTIMENT_PATH, SILVER_REVIEWS_PATH
 
 
 class DataService:
@@ -37,6 +37,13 @@ class DataService:
         # Đọc Silver Reviews (để có chi tiết review)
         self.df_reviews = self._read_parquet_dir(SILVER_REVIEWS_PATH)
         logger.info(f"  → Reviews: {len(self.df_reviews)} rows")
+        
+        # Đọc Gold Sentiment (nếu đã chạy ML pipeline)
+        self.df_sentiment = self._read_parquet_dir(GOLD_SENTIMENT_PATH)
+        if not self.df_sentiment.empty:
+            logger.info(f"  → Sentiment: {len(self.df_sentiment)} rows")
+        else:
+            logger.warning("  ⚠ Chưa có dữ liệu sentiment. Chạy: python -m ml.sentiment_analysis")
         
         self._loaded = True
         logger.success("✅ Dữ liệu đã được load vào memory!")
@@ -129,8 +136,9 @@ class DataService:
         return df.where(df.notna(), None).to_dict(orient="records")
     
     def get_reviews_by_product(self, product_id: str) -> list[dict]:
-        """Lấy tất cả reviews của 1 sản phẩm."""
-        df = self.df_reviews
+        """Lấy tất cả reviews của 1 sản phẩm (kèm sentiment nếu có)."""
+        # Ưu tiên dùng sentiment data (đã có label), fallback về Silver reviews
+        df = self.df_sentiment if not self.df_sentiment.empty else self.df_reviews
         if df.empty:
             return []
         
@@ -149,6 +157,27 @@ class DataService:
             return []
         
         return matches.where(matches.notna(), None).to_dict(orient="records")
+    
+    # === Sentiment Queries ===
+    
+    def get_sentiment_overview(self) -> dict:
+        """Tổng quan cảm xúc: tỷ lệ positive/negative/neutral."""
+        df = self.df_sentiment
+        if df.empty or "sentiment_label" not in df.columns:
+            return {"positive": 0, "negative": 0, "neutral": 0, "total": 0}
+        
+        counts = df["sentiment_label"].value_counts().to_dict()
+        total = len(df)
+        
+        return {
+            "positive": int(counts.get("positive", 0)),
+            "negative": int(counts.get("negative", 0)),
+            "neutral": int(counts.get("neutral", 0)),
+            "total": total,
+            "positive_pct": round(counts.get("positive", 0) / total * 100, 1) if total > 0 else 0,
+            "negative_pct": round(counts.get("negative", 0) / total * 100, 1) if total > 0 else 0,
+            "neutral_pct": round(counts.get("neutral", 0) / total * 100, 1) if total > 0 else 0,
+        }
 
     def get_rating_distribution(self) -> dict:
         """Phân bố đánh giá (1-5 sao) trên toàn bộ sản phẩm."""

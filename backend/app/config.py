@@ -9,6 +9,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 # Đường dẫn tới các layer dữ liệu (Delta Lake lưu dưới dạng Parquet)
 GOLD_PRODUCT_METRICS_PATH = PROJECT_ROOT / "data" / "gold" / "product_metrics"
+GOLD_SENTIMENT_PATH = PROJECT_ROOT / "data" / "gold" / "reviews_sentiment"
 SILVER_PRODUCTS_PATH = PROJECT_ROOT / "data" / "silver" / "products"
 SILVER_REVIEWS_PATH = PROJECT_ROOT / "data" / "silver" / "reviews"
 

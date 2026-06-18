@@ -4,15 +4,17 @@ import { useEffect, useState } from "react";
 import { Package, DollarSign, Star, MessageSquare } from "lucide-react";
 import KpiCard from "@/components/KpiCard";
 import RatingChart from "@/components/RatingChart";
+import SentimentChart from "@/components/SentimentChart";
 import TopProductsTable from "@/components/TopProductsTable";
 import ProductModal from "@/components/ProductModal";
 import ReviewsModal from "@/components/ReviewsModal";
-import { getOverview, getRatingDistribution, getTopProducts } from "@/lib/api";
+import { getOverview, getRatingDistribution, getTopProducts, getSentimentOverview } from "@/lib/api";
 
 export default function OverviewPage() {
   const [overview, setOverview] = useState(null);
   const [ratingDist, setRatingDist] = useState(null);
   const [topProducts, setTopProducts] = useState([]);
+  const [sentiment, setSentiment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -23,14 +25,16 @@ export default function OverviewPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [ov, rd, tp] = await Promise.all([
+        const [ov, rd, tp, sm] = await Promise.all([
           getOverview(),
           getRatingDistribution(),
           getTopProducts("avg_rating", 5),
+          getSentimentOverview(),
         ]);
         setOverview(ov);
         setRatingDist(rd);
         setTopProducts(tp);
+        setSentiment(sm);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -119,8 +123,9 @@ export default function OverviewPage() {
         </div>
 
         {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <RatingChart data={ratingDist} height={260} />
+          <SentimentChart data={sentiment} />
           <TopProductsTable
             products={topProducts}
             title="🏆 Top 5 sản phẩm — Rating"
