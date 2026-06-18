@@ -51,6 +51,10 @@ export async function getProductById(productId) {
   return fetchAPI(`/api/products/${productId}`);
 }
 
+export async function getProductReviews(productId) {
+  return fetchAPI(`/api/products/${productId}/reviews`);
+}
+
 // === System ===
 
 export async function getHealth() {

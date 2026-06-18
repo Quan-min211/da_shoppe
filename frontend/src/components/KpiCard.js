@@ -1,57 +1,30 @@
 "use client";
 
-export default function KpiCard({ title, value, subtitle, icon: Icon, color = "indigo" }) {
+export default function KpiCard({ title, value, subtitle, icon: Icon, trend, color = "purple" }) {
   const colorMap = {
-    indigo: {
-      gradient: "from-indigo-500/10 to-indigo-600/5",
-      border: "border-indigo-500/20",
-      iconBg: "bg-indigo-500/15",
-      iconColor: "text-indigo-400",
-      valueColor: "text-indigo-50",
-    },
-    emerald: {
-      gradient: "from-emerald-500/10 to-emerald-600/5",
-      border: "border-emerald-500/20",
-      iconBg: "bg-emerald-500/15",
-      iconColor: "text-emerald-400",
-      valueColor: "text-emerald-50",
-    },
-    amber: {
-      gradient: "from-amber-500/10 to-amber-600/5",
-      border: "border-amber-500/20",
-      iconBg: "bg-amber-500/15",
-      iconColor: "text-amber-400",
-      valueColor: "text-amber-50",
-    },
-    rose: {
-      gradient: "from-rose-500/10 to-rose-600/5",
-      border: "border-rose-500/20",
-      iconBg: "bg-rose-500/15",
-      iconColor: "text-rose-400",
-      valueColor: "text-rose-50",
-    },
+    purple: { bg: "bg-white", iconBg: "bg-[#7C5CFC]/10", iconColor: "text-[#7C5CFC]", trendBg: "bg-[#7C5CFC]/10", trendColor: "text-[#7C5CFC]" },
+    green:  { bg: "bg-white", iconBg: "bg-emerald-50",    iconColor: "text-emerald-600", trendBg: "bg-emerald-50", trendColor: "text-emerald-600" },
+    amber:  { bg: "bg-white", iconBg: "bg-amber-50",      iconColor: "text-amber-600",   trendBg: "bg-amber-50",  trendColor: "text-amber-600" },
+    rose:   { bg: "bg-white", iconBg: "bg-rose-50",       iconColor: "text-rose-600",    trendBg: "bg-rose-50",   trendColor: "text-rose-600" },
   };
 
-  const c = colorMap[color] || colorMap.indigo;
+  const c = colorMap[color] || colorMap.purple;
 
   return (
-    <div
-      className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${c.gradient} border ${c.border} p-6 backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-lg`}
-    >
-      <div className="flex items-start justify-between">
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-slate-400">{title}</p>
-          <p className={`text-3xl font-bold tracking-tight ${c.valueColor}`}>{value}</p>
-          {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
+    <div className={`${c.bg} rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5`}>
+      <div className="flex items-start justify-between mb-4">
+        <div className={`rounded-xl ${c.iconBg} p-2.5`}>
+          {Icon && <Icon className={`w-5 h-5 ${c.iconColor}`} />}
         </div>
-        {Icon && (
-          <div className={`rounded-xl ${c.iconBg} p-3`}>
-            <Icon className={`w-6 h-6 ${c.iconColor}`} />
-          </div>
+        {trend && (
+          <span className={`text-xs font-semibold px-2 py-1 rounded-full ${c.trendBg} ${c.trendColor}`}>
+            {trend}
+          </span>
         )}
       </div>
-      {/* Decorative glow */}
-      <div className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full ${c.iconBg} blur-2xl opacity-50`} />
+      <p className="text-3xl font-bold text-[#1A1A2E] tracking-tight">{value}</p>
+      <p className="text-sm text-gray-500 mt-1">{title}</p>
+      {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
     </div>
   );
 }

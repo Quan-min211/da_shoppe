@@ -1,20 +1,13 @@
 "use client";
 
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
 
-const COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#6366f1"];
+const COLORS = ["#EF4444", "#F97316", "#EAB308", "#22C55E", "#7C5CFC"];
 const LABELS = ["1 ⭐", "2 ⭐", "3 ⭐", "4 ⭐", "5 ⭐"];
 
-export default function RatingChart({ data, height = 300 }) {
+export default function RatingChart({ data, height = 280, title = "Phân bố đánh giá" }) {
   if (!data) return null;
 
   const chartData = [
@@ -26,32 +19,33 @@ export default function RatingChart({ data, height = 300 }) {
   ];
 
   return (
-    <div className="rounded-2xl bg-slate-800/50 border border-slate-700/30 p-6 backdrop-blur-sm">
-      <h3 className="text-lg font-semibold text-white mb-4">Phân bố đánh giá</h3>
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-semibold text-[#1A1A2E]">{title}</h3>
+        <span className="text-xs text-gray-400">Tổng: {data.total || 0}</span>
+      </div>
       <ResponsiveContainer width="100%" height={height}>
-        <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-          <XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 13 }} />
-          <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} />
+        <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" vertical={false} />
+          <XAxis dataKey="name" tick={{ fill: "#6B7280", fontSize: 12 }} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fill: "#9CA3AF", fontSize: 11 }} axisLine={false} tickLine={false} />
           <Tooltip
             contentStyle={{
-              backgroundColor: "#1e293b",
-              border: "1px solid #475569",
+              backgroundColor: "#FFFFFF",
+              border: "1px solid #E5E7EB",
               borderRadius: "12px",
-              color: "#f1f5f9",
+              color: "#1A1A2E",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
             }}
-            cursor={{ fill: "rgba(99, 102, 241, 0.1)" }}
+            cursor={{ fill: "rgba(124, 92, 252, 0.06)" }}
           />
-          <Bar dataKey="value" radius={[8, 8, 0, 0]} maxBarSize={60}>
+          <Bar dataKey="value" radius={[8, 8, 0, 0]} maxBarSize={48}>
             {chartData.map((_, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index]} />
             ))}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-      <p className="text-center text-sm text-slate-500 mt-2">
-        Tổng: {data.total || 0} đánh giá
-      </p>
     </div>
   );
 }

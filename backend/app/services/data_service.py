@@ -128,6 +128,28 @@ class DataService:
         df = df.sort_values(by=metric, ascending=False).head(limit)
         return df.where(df.notna(), None).to_dict(orient="records")
     
+    def get_reviews_by_product(self, product_id: str) -> list[dict]:
+        """Lấy tất cả reviews của 1 sản phẩm."""
+        df = self.df_reviews
+        if df.empty:
+            return []
+        
+        # Tìm cột chứa product_id (có thể là product_id hoặc item_id)
+        id_col = None
+        for col_name in ["product_id", "item_id", "itemid"]:
+            if col_name in df.columns:
+                id_col = col_name
+                break
+        
+        if id_col is None:
+            return []
+        
+        matches = df[df[id_col].astype(str) == str(product_id)]
+        if matches.empty:
+            return []
+        
+        return matches.where(matches.notna(), None).to_dict(orient="records")
+
     def get_rating_distribution(self) -> dict:
         """Phân bố đánh giá (1-5 sao) trên toàn bộ sản phẩm."""
         df = self.df_product_metrics

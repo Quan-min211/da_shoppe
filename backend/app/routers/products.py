@@ -57,3 +57,13 @@ async def get_product(product_id: str):
     if product is None:
         raise HTTPException(status_code=404, detail=f"Không tìm thấy sản phẩm: {product_id}")
     return product
+
+
+@router.get("/{product_id}/reviews", summary="Reviews của sản phẩm")
+async def get_product_reviews(product_id: str):
+    """
+    Lấy tất cả reviews/bình luận của 1 sản phẩm.
+    """
+    reviews = data_service.get_reviews_by_product(product_id)
+    return {"product_id": product_id, "reviews": reviews, "total": len(reviews)}
+
