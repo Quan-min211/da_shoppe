@@ -9,6 +9,20 @@ import RatingChart from "@/components/RatingChart";
 import ProductModal from "@/components/ProductModal";
 import ReviewsModal from "@/components/ReviewsModal";
 
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-lg">
+        <p className="text-xs text-[#1A1A2E] font-medium">{payload[0].payload.fullName}</p>
+        <p className="text-xs text-[#7C5CFC] mt-1 font-bold">
+          {payload[0].name === "avg_rating" ? `Rating: ${payload[0].value}` : `Reviews: ${payload[0].value}`}
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function AnalyticsPage() {
   const [ratingDist, setRatingDist] = useState(null);
   const [topByRating, setTopByRating] = useState([]);
@@ -83,19 +97,6 @@ export default function AnalyticsPage() {
     }))
     .reverse();
 
-  const CustomTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-lg">
-          <p className="text-xs text-[#1A1A2E] font-medium">{payload[0].payload.fullName}</p>
-          <p className="text-xs text-[#7C5CFC] mt-1 font-bold">
-            {payload[0].name === "avg_rating" ? `Rating: ${payload[0].value}` : `Reviews: ${payload[0].value}`}
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
 
   const handleBarClick = (data) => {
     if (data?.product) setSelectedProduct(data.product);

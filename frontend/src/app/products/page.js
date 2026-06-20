@@ -6,6 +6,18 @@ import { getProducts } from "@/lib/api";
 import ProductModal from "@/components/ProductModal";
 import ReviewsModal from "@/components/ReviewsModal";
 
+const SortHeader = ({ column, children, align = "left", sortBy, handleSort }) => (
+  <th
+    onClick={() => handleSort(column)}
+    className={`text-${align} text-[11px] font-medium text-gray-400 uppercase tracking-wider pb-4 px-3 cursor-pointer hover:text-[#7C5CFC] transition-colors select-none`}
+  >
+    <div className={`flex items-center gap-1 ${align === "right" ? "justify-end" : ""}`}>
+      {children}
+      <ArrowUpDown className={`w-3 h-3 ${sortBy === column ? "text-[#7C5CFC]" : ""}`} />
+    </div>
+  </th>
+);
+
 export default function ProductsPage() {
   const [data, setData] = useState({ data: [], total: 0, page: 1, page_size: 15, total_pages: 0 });
   const [search, setSearch] = useState("");
@@ -19,19 +31,26 @@ export default function ProductsPage() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [reviewsTarget, setReviewsTarget] = useState(null);
 
-  const fetchProducts = useCallback(async () => {
-    setLoading(true);
-    try {
-      const result = await getProducts({ page, pageSize: 15, search, sortBy, sortOrder });
-      setData(result);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    let ignore = false;
+    async function fetchData() {
+      setLoading(true);
+      try {
+        const result = await getProducts({ page, pageSize: 15, search, sortBy, sortOrder });
+        if (!ignore) {
+          setData(result);
+          setLoading(false);
+        }
+      } catch (err) {
+        if (!ignore) {
+          setError(err.message);
+          setLoading(false);
+        }
+      }
     }
+    fetchData();
+    return () => { ignore = true; };
   }, [page, search, sortBy, sortOrder]);
-
-  useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
   useEffect(() => {
     const timer = setTimeout(() => setPage(1), 300);
@@ -48,17 +67,6 @@ export default function ProductsPage() {
     setPage(1);
   };
 
-  const SortHeader = ({ column, children, align = "left" }) => (
-    <th
-      onClick={() => handleSort(column)}
-      className={`text-${align} text-[11px] font-medium text-gray-400 uppercase tracking-wider pb-4 px-3 cursor-pointer hover:text-[#7C5CFC] transition-colors select-none`}
-    >
-      <div className={`flex items-center gap-1 ${align === "right" ? "justify-end" : ""}`}>
-        {children}
-        <ArrowUpDown className={`w-3 h-3 ${sortBy === column ? "text-[#7C5CFC]" : ""}`} />
-      </div>
-    </th>
-  );
 
   if (error) {
     return (
@@ -100,10 +108,10 @@ export default function ProductsPage() {
               <thead>
                 <tr className="border-b border-gray-100">
                   <th className="text-left text-[11px] font-medium text-gray-400 uppercase tracking-wider pb-4 pl-5 pr-2 pt-4 w-12">#</th>
-                  <SortHeader column="name">Sản phẩm</SortHeader>
-                  <SortHeader column="price" align="right">Giá</SortHeader>
-                  <SortHeader column="avg_rating" align="right">Rating</SortHeader>
-                  <SortHeader column="total_reviews" align="right">Reviews</SortHeader>
+                  <SortHeader column="name" sortBy={sortBy} handleSort={handleSort}>Sản phẩm</SortHeader>
+                  <SortHeader column="price" align="right" sortBy={sortBy} handleSort={handleSort}>Giá</SortHeader>
+                  <SortHeader column="avg_rating" align="right" sortBy={sortBy} handleSort={handleSort}>Rating</SortHeader>
+                  <SortHeader column="total_reviews" align="right" sortBy={sortBy} handleSort={handleSort}>Reviews</SortHeader>
                   <th className="text-left text-[11px] font-medium text-gray-400 uppercase tracking-wider pb-4 px-3 pt-4">Shop</th>
                   <th className="text-center text-[11px] font-medium text-gray-400 uppercase tracking-wider pb-4 px-3 pt-4">Hành động</th>
                 </tr>

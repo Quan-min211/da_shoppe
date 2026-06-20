@@ -20,6 +20,24 @@ const EMOJIS = {
   neutral: "🟡",
 };
 
+const CustomTooltip = ({ active, payload, total }) => {
+  if (active && payload && payload.length) {
+    const d = payload[0].payload;
+    const pct = ((d.value / total) * 100).toFixed(1);
+    return (
+      <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-lg">
+        <p className="text-sm font-medium text-[#1A1A2E]">
+          {EMOJIS[d.name]} {d.label}
+        </p>
+        <p className="text-xs text-gray-500 mt-1">
+          {d.value} reviews ({pct}%)
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function SentimentChart({ data, height = 260 }) {
   if (!data || data.total === 0) {
     return (
@@ -38,23 +56,6 @@ export default function SentimentChart({ data, height = 260 }) {
     { name: "neutral", label: LABELS.neutral, value: data.neutral || 0 },
   ].filter((d) => d.value > 0);
 
-  const CustomTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      const d = payload[0].payload;
-      const pct = ((d.value / data.total) * 100).toFixed(1);
-      return (
-        <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-lg">
-          <p className="text-sm font-medium text-[#1A1A2E]">
-            {EMOJIS[d.name]} {d.label}
-          </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {d.value} reviews ({pct}%)
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
@@ -82,7 +83,7 @@ export default function SentimentChart({ data, height = 260 }) {
                   <Cell key={entry.name} fill={COLORS[entry.name]} />
                 ))}
               </Pie>
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip total={data.total} />} />
             </PieChart>
           </ResponsiveContainer>
           {/* Center label */}

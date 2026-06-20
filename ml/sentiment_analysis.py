@@ -7,7 +7,6 @@ trên từng review, và lưu kết quả ra Gold Layer (Parquet).
 Chạy: python -m ml.sentiment_analysis
 """
 
-import sys
 from pathlib import Path
 
 import pandas as pd

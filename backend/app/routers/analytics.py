@@ -4,8 +4,9 @@ Endpoints: GET /api/analytics/overview, /top-products, /rating-distribution
 """
 
 from fastapi import APIRouter, Query
-from backend.app.services.data_service import data_service
+
 from backend.app.models.schemas import AnalyticsOverview, RatingDistribution
+from backend.app.services.data_service import data_service
 
 router = APIRouter(prefix="/api/analytics", tags=["Analytics"])
 
@@ -25,7 +26,7 @@ async def get_overview():
 @router.get("/top-products", summary="Top sản phẩm")
 async def get_top_products(
     metric: str = Query(
-        "avg_rating", 
+        "avg_rating",
         description="Xếp hạng theo: avg_rating, total_reviews, sold_count"
     ),
     limit: int = Query(10, ge=1, le=50, description="Số lượng sản phẩm trả về"),
@@ -42,8 +43,8 @@ async def get_top_products(
 
 
 @router.get(
-    "/rating-distribution", 
-    response_model=RatingDistribution, 
+    "/rating-distribution",
+    response_model=RatingDistribution,
     summary="Phân bố đánh giá"
 )
 async def get_rating_distribution():

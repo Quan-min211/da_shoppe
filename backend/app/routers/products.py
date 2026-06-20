@@ -4,10 +4,12 @@ Endpoints: GET /api/products, GET /api/products/{product_id}
 """
 
 import math
-from fastapi import APIRouter, Query, HTTPException
-from backend.app.services.data_service import data_service
-from backend.app.models.schemas import PaginatedResponse
+
+from fastapi import APIRouter, HTTPException, Query
+
 from backend.app.config import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
+from backend.app.models.schemas import PaginatedResponse
+from backend.app.services.data_service import data_service
 
 router = APIRouter(prefix="/api/products", tags=["Products"])
 
@@ -15,14 +17,18 @@ router = APIRouter(prefix="/api/products", tags=["Products"])
 @router.get("", response_model=PaginatedResponse, summary="Danh sách sản phẩm")
 async def list_products(
     page: int = Query(1, ge=1, description="Số trang"),
-    page_size: int = Query(DEFAULT_PAGE_SIZE, ge=1, le=MAX_PAGE_SIZE, description="Số sản phẩm mỗi trang"),
+    page_size: int = Query(
+        DEFAULT_PAGE_SIZE, ge=1, le=MAX_PAGE_SIZE, description="Số sản phẩm mỗi trang"
+    ),
     search: str = Query(None, description="Tìm kiếm theo tên sản phẩm"),
-    sort_by: str = Query("avg_rating", description="Sắp xếp theo: avg_rating, price, total_reviews, sold_count"),
+    sort_by: str = Query(
+        "avg_rating", description="Sắp xếp theo: avg_rating, price, total_reviews, sold_count"
+    ),
     sort_order: str = Query("desc", description="Thứ tự: asc hoặc desc"),
 ):
     """
     Lấy danh sách sản phẩm từ Gold Layer.
-    
+
     Hỗ trợ:
     - **Phân trang** (page, page_size)
     - **Tìm kiếm** theo tên sản phẩm (search)
@@ -35,9 +41,9 @@ async def list_products(
         sort_by=sort_by,
         sort_order=sort_order,
     )
-    
+
     total_pages = math.ceil(total / page_size) if total > 0 else 0
-    
+
     return PaginatedResponse(
         data=records,
         total=total,

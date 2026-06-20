@@ -2,8 +2,9 @@
 Pydantic schemas cho API responses.
 """
 
-from pydantic import BaseModel
 from typing import Optional
+
+from pydantic import BaseModel
 
 
 class ProductResponse(BaseModel):
@@ -18,7 +19,7 @@ class ProductResponse(BaseModel):
     image_url: Optional[str] = None
     shop_name: Optional[str] = None
     location: Optional[str] = None
-    
+
     # Metrics từ Gold Layer
     total_reviews: Optional[int] = 0
     avg_rating: Optional[float] = 0.0

@@ -6,13 +6,14 @@ bằng pandas khi khởi động, phục vụ qua REST API.
 """
 
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
-from backend.app.services.data_service import data_service
-from backend.app.routers import products, analytics
 from backend.app.models.schemas import HealthResponse
+from backend.app.routers import analytics, products
+from backend.app.services.data_service import data_service
 
 
 @asynccontextmanager
