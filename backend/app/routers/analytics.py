@@ -33,7 +33,7 @@ async def get_top_products(
 ):
     """
     Top N sản phẩm theo metric chọn.
-    
+
     Metrics:
     - **avg_rating**: Điểm đánh giá trung bình cao nhất
     - **total_reviews**: Nhiều lượt đánh giá nhất
