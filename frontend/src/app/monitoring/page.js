@@ -1,6 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Activity, RefreshCw, Server, Database, ExternalLink, CheckCircle, AlertCircle } from "lucide-react";
 
 export default function MonitoringPage() {
@@ -10,16 +11,7 @@ export default function MonitoringPage() {
   const [error, setError] = useState(null);
   const [host, setHost] = useState("");
 
-  useEffect(() => {
-    setHost(window.location.hostname);
-    fetchHealth();
-    
-    // Auto refresh every 30 seconds
-    const interval = setInterval(fetchHealth, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchHealth = async () => {
+  const fetchHealth = useCallback(async () => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/health`);
       if (!res.ok) throw new Error("Failed to fetch health status");
@@ -32,7 +24,22 @@ export default function MonitoringPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    Promise.resolve().then(() => {
+      if (mounted) setHost(window.location.hostname);
+    });
+    fetchHealth();
+    
+    // Auto refresh every 30 seconds
+    const interval = setInterval(fetchHealth, 30000);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, [fetchHealth]);
 
   const handleReload = async () => {
     setReloading(true);
