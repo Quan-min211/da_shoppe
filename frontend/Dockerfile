@@ -11,7 +11,7 @@ FROM base AS deps
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev 2>/dev/null || npm install --omit=dev
+RUN npm ci 2>/dev/null || npm install
 
 # ---- Stage 2: Build ----
 FROM base AS builder
