@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, BarChart3, ShoppingCart } from "lucide-react";
+import { LayoutDashboard, Package, BarChart3, ShoppingCart, Activity } from "lucide-react";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/products", label: "Products", icon: Package },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/monitoring", label: "Monitoring", icon: Activity },
 ];
 
 export default function Sidebar() {
