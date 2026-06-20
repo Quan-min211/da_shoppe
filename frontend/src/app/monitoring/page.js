@@ -149,7 +149,7 @@ export default function MonitoringPage() {
         <h3 className="text-lg font-bold text-[#1A1A2E] mb-4 mt-8">External Dashboards</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <a
-            href={host ? \`http://\${host}:3001\` : "#"}
+            href={host ? `http://${host}:3001` : "#"}
             target="_blank"
             rel="noreferrer"
             className="flex items-center justify-between p-5 bg-white border border-gray-100 rounded-2xl hover:border-[#7C5CFC]/30 hover:shadow-md transition-all group cursor-pointer"
@@ -167,7 +167,7 @@ export default function MonitoringPage() {
           </a>
 
           <a
-            href={host ? \`http://\${host}:9090\` : "#"}
+            href={host ? `http://${host}:9090` : "#"}
             target="_blank"
             rel="noreferrer"
             className="flex items-center justify-between p-5 bg-white border border-gray-100 rounded-2xl hover:border-[#7C5CFC]/30 hover:shadow-md transition-all group cursor-pointer"
