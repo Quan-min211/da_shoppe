@@ -41,6 +41,7 @@ backend = [
     "sqlalchemy>=2.0.0",
     "pandas>=2.1.0",
     "pyarrow>=14.0.0",
+    "prometheus-fastapi-instrumentator>=6.1.1",
 ]
 ml = [
     "underthesea>=6.8.0",

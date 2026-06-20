@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
+from prometheus_fastapi_instrumentator import PrometheusInstrumentator
 
 from backend.app.models.schemas import HealthResponse
 from backend.app.routers import analytics, products
@@ -49,6 +50,9 @@ app.add_middleware(
 # Mount routers
 app.include_router(products.router)
 app.include_router(analytics.router)
+
+# Prometheus Metrics
+PrometheusInstrumentator().instrument(app).expose(app)
 
 
 @app.get("/api/health", response_model=HealthResponse, tags=["System"])
