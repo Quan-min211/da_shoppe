@@ -31,6 +31,7 @@ export default function MonitoringPage() {
     Promise.resolve().then(() => {
       if (mounted) setHost(window.location.hostname);
     });
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchHealth();
     
     // Auto refresh every 30 seconds
