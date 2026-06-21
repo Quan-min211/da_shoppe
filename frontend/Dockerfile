@@ -21,8 +21,6 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build-time env: API URL trỏ vào Docker service name
-ENV NEXT_PUBLIC_API_URL=http://backend:8000
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build
@@ -34,6 +32,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS="--dns-result-order=ipv4first"
 
 # Tạo user non-root
 RUN addgroup --system --gid 1001 nodejs && \

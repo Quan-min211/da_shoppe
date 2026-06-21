@@ -33,7 +33,8 @@ RUN pip install --no-cache-dir -e ".[backend,ml]" 2>/dev/null || \
     "pydantic>=2.5.0" \
     "pydantic-settings>=2.1.0" \
     "loguru>=0.7.0" \
-    "python-dotenv>=1.0.0"
+    "python-dotenv>=1.0.0" \
+    "prometheus-fastapi-instrumentator>=6.1.1"
 
 # ---- Stage 2: Runtime ----
 FROM base AS runtime

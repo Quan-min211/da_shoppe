@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
-from prometheus_fastapi_instrumentator import PrometheusInstrumentator
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from backend.app.models.schemas import HealthResponse
 from backend.app.routers import analytics, products
@@ -41,7 +41,7 @@ app = FastAPI(
 # CORS — cho phép frontend (Next.js) gọi API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Trong production nên giới hạn domain
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -52,7 +52,7 @@ app.include_router(products.router)
 app.include_router(analytics.router)
 
 # Prometheus Metrics
-PrometheusInstrumentator().instrument(app).expose(app)
+Instrumentator().instrument(app).expose(app)
 
 
 @app.get("/api/health", response_model=HealthResponse, tags=["System"])

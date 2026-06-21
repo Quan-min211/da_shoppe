@@ -36,12 +36,12 @@ processing = [
     "delta-spark==3.1.0",
 ]
 backend = [
-    "fastapi>=0.104.0",
+    "fastapi==0.110.3",
     "uvicorn[standard]>=0.24.0",
     "sqlalchemy>=2.0.0",
     "pandas>=2.1.0",
     "pyarrow>=14.0.0",
-    "prometheus-fastapi-instrumentator>=6.1.1",
+    "prometheus-fastapi-instrumentator==7.0.0",
 ]
 ml = [
     "underthesea>=6.8.0",
