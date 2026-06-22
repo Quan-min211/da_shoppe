@@ -172,18 +172,17 @@ class ShopeeScraper(BaseScraper):
         self._collected_items = []
 
         context = self._browser.contexts[0]
+        # Sử dụng tab có sẵn đầu tiên, hoặc tạo mới nếu chưa có
+        page: Page = context.pages[0] if context.pages else context.new_page()
+
+        # Gắn listener để intercept API responses (chỉ gắn 1 lần)
+        page.on(
+            "response",
+            lambda resp, kw=keyword: self._handle_search_response(resp, kw),
+        )
 
         for page_num in range(max_pages):
             self._data_received.clear()
-
-            # Tạo tab mới cho mỗi page
-            page: Page = context.new_page()
-
-            # Gắn listener để intercept API responses
-            page.on(
-                "response",
-                lambda resp, kw=keyword: self._handle_search_response(resp, kw),
-            )
 
             # Build search URL với pagination
             # Shopee dùng offset: page 0 → newest=0, page 1 → newest=60, ...
@@ -198,7 +197,29 @@ class ShopeeScraper(BaseScraper):
             )
 
             try:
-                page.goto(search_url, wait_until="domcontentloaded", timeout=30000)
+                if page_num == 0:
+                    self.logger.info("👉 Mô phỏng thao tác người dùng: Vào trang chủ và nhập từ khóa tìm kiếm...")
+                    # Vào trang chủ
+                    page.goto("https://shopee.vn/", wait_until="domcontentloaded", timeout=60000)
+                    
+                    self.logger.info("⏳ Đang dừng 60 giây để bạn xử lý Anti-bot hoặc Đăng nhập Shopee...")
+                    page.wait_for_timeout(60000)
+                    
+                    try:
+                        # Chờ ô tìm kiếm xuất hiện (thường là input có class shopee-searchbar-input__input)
+                        page.wait_for_selector("input.shopee-searchbar-input__input", timeout=10000)
+                        # Gõ từ khóa vào
+                        page.fill("input.shopee-searchbar-input__input", keyword)
+                        # Nhấn Enter để bắt đầu tìm kiếm
+                        page.press("input.shopee-searchbar-input__input", "Enter")
+                        
+                        self.logger.info("⏳ Đang dừng thêm 60 giây để bạn gỡ Anti-bot sau khi tìm kiếm...")
+                        page.wait_for_timeout(60000)
+                    except Exception as e:
+                        self.logger.warning(f"⚠️ Không tìm thấy ô tìm kiếm, chuyển qua URL tĩnh... {e}")
+                        page.goto(search_url, wait_until="domcontentloaded", timeout=30000)
+                else:
+                    page.goto(search_url, wait_until="domcontentloaded", timeout=30000)
 
                 # Chờ API response trả về (tối đa 15 giây)
                 self._data_received.wait(timeout=15)
@@ -214,8 +235,7 @@ class ShopeeScraper(BaseScraper):
 
             except Exception as e:
                 self.logger.error(f"❌ Lỗi trang {page_num + 1}: {e}")
-            finally:
-                page.close()
+            # Bỏ page.close() để tái sử dụng tab này cho các trang tiếp theo
 
             # Rate limiting giữa các pages
             if page_num < max_pages - 1:

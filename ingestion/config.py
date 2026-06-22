@@ -37,7 +37,7 @@ class Settings:
 
     def __init__(self):
         # === Chrome CDP ===
-        self.CHROME_CDP_URL: str = os.getenv("CHROME_CDP_URL", "http://localhost:9222")
+        self.CHROME_CDP_URL: str = os.getenv("CHROME_CDP_URL", "http://127.0.0.1:9222")
 
         # === Scraping ===
         self.REQUEST_DELAY_SECONDS: float = float(

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Search, ChevronLeft, ChevronRight, Star, ArrowUpDown, Eye, MessageSquare } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Star, ArrowUpDown, Eye, MessageSquare, Download, RefreshCw, Plus } from "lucide-react";
 import { getProducts } from "@/lib/api";
 import ProductModal from "@/components/ProductModal";
 import ReviewsModal from "@/components/ReviewsModal";
@@ -30,6 +30,40 @@ export default function ProductsPage() {
   // Modals
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [reviewsTarget, setReviewsTarget] = useState(null);
+
+  // Crawling States
+  const [crawlKeyword, setCrawlKeyword] = useState("");
+  const [isCrawling, setIsCrawling] = useState(false);
+  const [crawlStatus, setCrawlStatus] = useState("");
+
+  const handleCrawl = async (limit) => {
+    if (!crawlKeyword.trim()) return;
+    setIsCrawling(true);
+    setCrawlStatus(`Đang yêu cầu cào ${limit} sản phẩm...`);
+    try {
+      const res = await fetch("http://localhost:8001/api/crawl", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keyword: crawlKeyword, limit })
+      });
+      if (res.ok) {
+        setCrawlStatus("Hệ thống đang tự động mở Chrome và thu thập dữ liệu ngầm. Quá trình này sẽ mất 1-2 phút, danh sách sẽ tự động tải lại sau đó.");
+        // Giả lập chờ 90s rồi reload lại data
+        setTimeout(() => {
+          setPage(1);
+          setSearch(""); // Reset search để hiện data mới nhất
+          setIsCrawling(false);
+          setCrawlStatus("");
+        }, 90000);
+      } else {
+        setCrawlStatus("Lỗi khi gọi Local Crawler Agent! Đảm bảo bạn đã chạy script crawler_agent.py.");
+        setTimeout(() => setIsCrawling(false), 5000);
+      }
+    } catch (err) {
+      setCrawlStatus("Không thể kết nối tới Local Crawler Agent ở port 8001.");
+      setTimeout(() => setIsCrawling(false), 5000);
+    }
+  };
 
   useEffect(() => {
     let ignore = false;
@@ -84,22 +118,66 @@ export default function ProductsPage() {
     <>
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
           <div>
             <h1 className="text-2xl font-bold text-[#1A1A2E] tracking-tight">Products</h1>
             <p className="text-gray-500 mt-1 text-sm">{data.total} sản phẩm trong cơ sở dữ liệu</p>
           </div>
-          <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Tìm kiếm sản phẩm..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-[#1A1A2E] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#7C5CFC]/30 focus:border-[#7C5CFC]/30 transition-all shadow-sm"
-            />
+          
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+            {/* Database Search */}
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Tìm trong Database..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-[#1A1A2E] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#7C5CFC]/30 transition-all shadow-inner"
+              />
+            </div>
+            
+            <div className="hidden sm:block w-px h-8 bg-gray-200 mx-2"></div>
+
+            {/* Shopee Crawl */}
+            <div className="flex items-center gap-2 w-full sm:w-auto bg-[#7C5CFC]/5 p-1.5 rounded-xl border border-[#7C5CFC]/20">
+              <input
+                type="text"
+                placeholder="Tên SP để cào mới..."
+                value={crawlKeyword}
+                onChange={(e) => setCrawlKeyword(e.target.value)}
+                className="w-full sm:w-48 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm text-[#1A1A2E] focus:outline-none focus:border-[#7C5CFC] transition-all"
+                disabled={isCrawling}
+              />
+              <button
+                onClick={() => handleCrawl(100)}
+                disabled={isCrawling || !crawlKeyword.trim()}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#7C5CFC] text-white text-sm font-medium rounded-lg hover:bg-[#684CDE] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm whitespace-nowrap"
+              >
+                {isCrawling ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                Cào 100 SP
+              </button>
+              <button
+                onClick={() => handleCrawl(50)}
+                disabled={isCrawling || !crawlKeyword.trim()}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-white text-sm font-medium rounded-lg hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm whitespace-nowrap"
+              >
+                <Plus className="w-4 h-4" />
+                Thêm 50 SP
+              </button>
+            </div>
           </div>
         </div>
+
+        {isCrawling && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+            <RefreshCw className="w-5 h-5 text-amber-500 animate-spin shrink-0 mt-0.5" />
+            <div>
+              <h4 className="text-amber-800 font-medium text-sm">Hệ thống đang hoạt động</h4>
+              <p className="text-amber-700 text-xs mt-1">{crawlStatus}</p>
+            </div>
+          </div>
+        )}
 
         {/* Table */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">

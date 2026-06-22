@@ -48,6 +48,9 @@ node_modules/
 .next/
 out/
 
+# ===== Chrome Bot Profile
+chrome_bot_profile/
+
 # ===== Jupyter =====
 .ipynb_checkpoints/
 
