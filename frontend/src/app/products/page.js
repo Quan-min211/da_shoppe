@@ -33,6 +33,7 @@ export default function ProductsPage() {
 
   // Crawling States
   const [crawlKeyword, setCrawlKeyword] = useState("");
+  const [crawlLimit, setCrawlLimit] = useState(100);
   const [isCrawling, setIsCrawling] = useState(false);
   const [crawlStatus, setCrawlStatus] = useState("");
 
@@ -149,21 +150,22 @@ export default function ProductsPage() {
                 className="w-full sm:w-48 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm text-[#1A1A2E] focus:outline-none focus:border-[#7C5CFC] transition-all"
                 disabled={isCrawling}
               />
+              <input
+                type="number"
+                min="1"
+                placeholder="Số lượng..."
+                value={crawlLimit}
+                onChange={(e) => setCrawlLimit(e.target.value)}
+                className="w-full sm:w-24 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm text-[#1A1A2E] focus:outline-none focus:border-[#7C5CFC] transition-all"
+                disabled={isCrawling}
+              />
               <button
-                onClick={() => handleCrawl(100)}
-                disabled={isCrawling || !crawlKeyword.trim()}
+                onClick={() => handleCrawl(Number(crawlLimit) || 100)}
+                disabled={isCrawling || !crawlKeyword.trim() || !crawlLimit || crawlLimit < 1}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-[#7C5CFC] text-white text-sm font-medium rounded-lg hover:bg-[#684CDE] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm whitespace-nowrap"
               >
                 {isCrawling ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                Cào 100 SP
-              </button>
-              <button
-                onClick={() => handleCrawl(50)}
-                disabled={isCrawling || !crawlKeyword.trim()}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-white text-sm font-medium rounded-lg hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm whitespace-nowrap"
-              >
-                <Plus className="w-4 h-4" />
-                Thêm 50 SP
+                Cào Dữ Liệu
               </button>
             </div>
           </div>
