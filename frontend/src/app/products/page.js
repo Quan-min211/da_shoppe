@@ -261,9 +261,21 @@ export default function ProductsPage() {
           {/* Pagination */}
           {data.total_pages > 1 && (
             <div className="flex items-center justify-between px-5 py-4 border-t border-gray-100">
-              <p className="text-sm text-gray-400">
-                Trang {data.page} / {data.total_pages}
-              </p>
+              <div className="flex items-center gap-2 text-sm text-gray-400">
+                <span>Trang</span>
+                <select
+                  value={data.page}
+                  onChange={(e) => setPage(Number(e.target.value))}
+                  className="bg-gray-50 border border-gray-200 text-[#1A1A2E] rounded-md px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-[#7C5CFC]/30 cursor-pointer hover:border-[#7C5CFC]/50 transition-colors"
+                >
+                  {Array.from({ length: data.total_pages }).map((_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {i + 1}
+                    </option>
+                  ))}
+                </select>
+                <span>/ {data.total_pages}</span>
+              </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setPage(Math.max(1, page - 1))}
