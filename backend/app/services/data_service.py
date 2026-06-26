@@ -122,6 +122,7 @@ class DataService:
             "avg_price": round(float(df["price"].mean()), 0) if "price" in df.columns else 0,
             "avg_rating": avg_rating,
             "total_reviews": int(df["total_reviews"].sum()) if "total_reviews" in df.columns else 0,
+            "total_keywords": int(df["keyword"].nunique()) if "keyword" in df.columns else 0,
         }
 
     def get_top_products(

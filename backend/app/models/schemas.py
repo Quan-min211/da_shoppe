@@ -49,6 +49,7 @@ class AnalyticsOverview(BaseModel):
     avg_price: float
     avg_rating: float
     total_reviews: int
+    total_keywords: Optional[int] = 0
 
 
 class RatingDistribution(BaseModel):

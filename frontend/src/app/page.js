@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Package, DollarSign, Star, MessageSquare } from "lucide-react";
+import { Package, DollarSign, Star, MessageSquare, Hash } from "lucide-react";
 import KpiCard from "@/components/KpiCard";
 import RatingChart from "@/components/RatingChart";
 import SentimentChart from "@/components/SentimentChart";
@@ -95,7 +95,14 @@ export default function OverviewPage() {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 stagger-children">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 stagger-children">
+          <KpiCard
+            title="Từ khóa / Danh mục"
+            value={overview?.total_keywords || 0}
+            icon={Hash}
+            color="purple"
+            subtitle="Số loại từ khóa đã cào"
+          />
           <KpiCard
             title="Tổng sản phẩm"
             value={overview?.total_products?.toLocaleString("vi-VN") || "0"}
