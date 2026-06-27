@@ -1,20 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Package, DollarSign, Star, MessageSquare, Hash } from "lucide-react";
+import { Package, DollarSign, Star, MessageSquare, Hash, Tag } from "lucide-react";
 import KpiCard from "@/components/KpiCard";
 import RatingChart from "@/components/RatingChart";
 import SentimentChart from "@/components/SentimentChart";
 import TopProductsTable from "@/components/TopProductsTable";
 import ProductModal from "@/components/ProductModal";
 import ReviewsModal from "@/components/ReviewsModal";
-import { getOverview, getRatingDistribution, getTopProducts, getSentimentOverview } from "@/lib/api";
+import { getOverview, getRatingDistribution, getTopProducts, getSentimentOverview, getKeywordStats } from "@/lib/api";
+
+// Bảng màu xoay vòng cho các keyword cards
+const KEYWORD_COLORS = [
+  { bg: "bg-violet-50", border: "border-violet-200", text: "text-violet-700", badge: "bg-violet-100 text-violet-600", accent: "#7C3AED" },
+  { bg: "bg-sky-50", border: "border-sky-200", text: "text-sky-700", badge: "bg-sky-100 text-sky-600", accent: "#0284C7" },
+  { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700", badge: "bg-emerald-100 text-emerald-600", accent: "#059669" },
+  { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-700", badge: "bg-amber-100 text-amber-600", accent: "#D97706" },
+  { bg: "bg-rose-50", border: "border-rose-200", text: "text-rose-700", badge: "bg-rose-100 text-rose-600", accent: "#E11D48" },
+  { bg: "bg-cyan-50", border: "border-cyan-200", text: "text-cyan-700", badge: "bg-cyan-100 text-cyan-600", accent: "#0891B2" },
+];
 
 export default function OverviewPage() {
   const [overview, setOverview] = useState(null);
   const [ratingDist, setRatingDist] = useState(null);
   const [topProducts, setTopProducts] = useState([]);
   const [sentiment, setSentiment] = useState(null);
+  const [keywordStats, setKeywordStats] = useState([]);
+  const [selectedKeywords, setSelectedKeywords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -22,19 +34,27 @@ export default function OverviewPage() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [reviewsTarget, setReviewsTarget] = useState(null);
 
+  const toggleKeyword = (kw) => {
+    setSelectedKeywords((prev) =>
+      prev.includes(kw) ? prev.filter((k) => k !== kw) : [...prev, kw]
+    );
+  };
+
   useEffect(() => {
     async function fetchData() {
       try {
-        const [ov, rd, tp, sm] = await Promise.all([
+        const [ov, rd, tp, sm, ks] = await Promise.all([
           getOverview(),
           getRatingDistribution(),
           getTopProducts("avg_rating", 5),
           getSentimentOverview(),
+          getKeywordStats(),
         ]);
         setOverview(ov);
         setRatingDist(rd);
         setTopProducts(tp);
         setSentiment(sm);
+        setKeywordStats(ks);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -94,15 +114,8 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 stagger-children">
-          <KpiCard
-            title="Từ khóa / Danh mục"
-            value={overview?.total_keywords || 0}
-            icon={Hash}
-            color="purple"
-            subtitle="Số loại từ khóa đã cào"
-          />
+        {/* Tổng quan KPI */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 stagger-children">
           <KpiCard
             title="Tổng sản phẩm"
             value={overview?.total_products?.toLocaleString("vi-VN") || "0"}
@@ -110,10 +123,11 @@ export default function OverviewPage() {
             color="purple"
           />
           <KpiCard
-            title="Giá trung bình"
-            value={`₫${(overview?.avg_price || 0).toLocaleString("vi-VN")}`}
-            icon={DollarSign}
+            title="Từ khóa đã cào"
+            value={overview?.total_keywords || 0}
+            icon={Hash}
             color="green"
+            subtitle={keywordStats.map(k => k.keyword).join(", ")}
           />
           <KpiCard
             title="Rating trung bình"
@@ -129,9 +143,129 @@ export default function OverviewPage() {
           />
         </div>
 
+        {/* ======= THỐNG KÊ THEO TỪNG TỪ KHÓA ======= */}
+        {keywordStats.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <h2 className="text-lg font-bold text-[#1A1A2E] flex items-center gap-2">
+                <Tag className="w-5 h-5 text-[#7C5CFC]" />
+                Thống kê theo từ khóa
+              </h2>
+              <span className="text-xs text-gray-400">
+                {selectedKeywords.length === 0
+                  ? "Chọn từ khóa bên dưới để hiển thị"
+                  : `Đang hiện ${selectedKeywords.length} / ${keywordStats.length} từ khóa`}
+              </span>
+            </div>
+
+            {/* Keyword Filter Pills */}
+            <div className="flex flex-wrap gap-2">
+              {keywordStats.map((kw, idx) => {
+                const isActive = selectedKeywords.includes(kw.keyword);
+                const color = KEYWORD_COLORS[idx % KEYWORD_COLORS.length];
+                return (
+                  <button
+                    key={kw.keyword}
+                    onClick={() => toggleKeyword(kw.keyword)}
+                    className={`px-3.5 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 ${
+                      isActive
+                        ? `${color.badge} ${color.border} shadow-sm`
+                        : "bg-white text-gray-500 border-gray-200 hover:border-gray-300 hover:text-gray-700"
+                    }`}
+                  >
+                    🏷️ {kw.keyword}
+                    <span className="ml-1.5 text-xs opacity-70">({kw.total_products})</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Keyword Cards Grid */}
+            {selectedKeywords.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              {keywordStats
+                .filter((kw) => selectedKeywords.includes(kw.keyword))
+                .map((kw) => {
+                const origIdx = keywordStats.findIndex((k) => k.keyword === kw.keyword);
+                const color = KEYWORD_COLORS[origIdx % KEYWORD_COLORS.length];
+                const rd = kw.rating_distribution || {};
+                const starData = [
+                  { label: "1⭐", value: rd.star_1 || 0, color: "#EF4444" },
+                  { label: "2⭐", value: rd.star_2 || 0, color: "#F97316" },
+                  { label: "3⭐", value: rd.star_3 || 0, color: "#EAB308" },
+                  { label: "4⭐", value: rd.star_4 || 0, color: "#22C55E" },
+                  { label: "5⭐", value: rd.star_5 || 0, color: "#7C5CFC" },
+                ];
+                const maxStar = Math.max(...starData.map(s => s.value), 1);
+
+                return (
+                  <div
+                    key={kw.keyword}
+                    className={`${color.bg} ${color.border} border rounded-2xl p-5 hover:shadow-md transition-all duration-300 hover:-translate-y-0.5`}
+                  >
+                    {/* Keyword Header */}
+                    <div className="flex items-center justify-between mb-4">
+                      <span className={`${color.badge} text-sm font-bold px-3 py-1 rounded-full`}>
+                        🏷️ {kw.keyword}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {kw.total_products} sản phẩm
+                      </span>
+                    </div>
+
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-3 gap-3 mb-4">
+                      <div className="bg-white/70 rounded-xl p-3 text-center">
+                        <p className="text-lg font-bold text-[#1A1A2E]">
+                          ₫{(kw.avg_price || 0).toLocaleString("vi-VN")}
+                        </p>
+                        <p className="text-[10px] text-gray-500 mt-0.5">Giá TB</p>
+                      </div>
+                      <div className="bg-white/70 rounded-xl p-3 text-center">
+                        <p className="text-lg font-bold text-[#1A1A2E]">
+                          {(kw.avg_rating || 0).toFixed(1)} ⭐
+                        </p>
+                        <p className="text-[10px] text-gray-500 mt-0.5">Rating TB</p>
+                      </div>
+                      <div className="bg-white/70 rounded-xl p-3 text-center">
+                        <p className="text-lg font-bold text-[#1A1A2E]">
+                          {(kw.total_reviews || 0).toLocaleString("vi-VN")}
+                        </p>
+                        <p className="text-[10px] text-gray-500 mt-0.5">Đánh giá</p>
+                      </div>
+                    </div>
+
+                    {/* Mini Rating Distribution Bar */}
+                    <div className="space-y-1.5">
+                      <p className="text-xs font-medium text-gray-500">Phân bố đánh giá</p>
+                      {starData.map((star) => (
+                        <div key={star.label} className="flex items-center gap-2">
+                          <span className="text-[10px] w-6 text-gray-500 text-right">{star.label}</span>
+                          <div className="flex-1 bg-white/60 rounded-full h-2.5 overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-500"
+                              style={{
+                                width: `${(star.value / maxStar) * 100}%`,
+                                backgroundColor: star.color,
+                                minWidth: star.value > 0 ? "4px" : "0px",
+                              }}
+                            />
+                          </div>
+                          <span className="text-[10px] w-8 text-gray-400">{star.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            )}
+          </div>
+        )}
+
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          <RatingChart data={ratingDist} height={260} />
+          <RatingChart data={ratingDist} height={260} title="Phân bố đánh giá (Tổng)" />
           <SentimentChart data={sentiment} />
           <TopProductsTable
             products={topProducts}

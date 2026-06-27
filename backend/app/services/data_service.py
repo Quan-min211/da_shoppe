@@ -125,6 +125,38 @@ class DataService:
             "total_keywords": int(df["keyword"].nunique()) if "keyword" in df.columns else 0,
         }
 
+    def get_keyword_stats(self) -> list[dict]:
+        """Thống kê chi tiết theo từng keyword đã cào."""
+        df = self.df_product_metrics
+        if "keyword" not in df.columns or df.empty:
+            return []
+
+        groups = df.groupby("keyword", dropna=True)
+        results = []
+        for kw, group in groups:
+            if not kw or str(kw).strip() == "":
+                continue
+
+            # Rating distribution cho keyword này
+            star_dist = {}
+            for star in range(1, 6):
+                col_name = f"star_{star}_count"
+                star_dist[f"star_{star}"] = int(group[col_name].sum()) if col_name in group.columns else 0
+            star_dist["total"] = sum(star_dist.values())
+
+            results.append({
+                "keyword": str(kw),
+                "total_products": int(len(group)),
+                "avg_price": round(float(group["price"].mean()), 0) if "price" in group.columns else 0,
+                "avg_rating": round(float(group["avg_rating"].mean()), 2) if "avg_rating" in group.columns else 0,
+                "total_reviews": int(group["total_reviews"].sum()) if "total_reviews" in group.columns else 0,
+                "rating_distribution": star_dist,
+            })
+
+        # Sắp xếp theo số lượng sản phẩm giảm dần
+        results.sort(key=lambda x: x["total_products"], reverse=True)
+        return results
+
     def get_top_products(
         self,
         metric: str = "avg_rating",

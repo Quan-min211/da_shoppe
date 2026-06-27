@@ -163,8 +163,8 @@ def do_crawl_task(keyword: str, limit: int):
                 
             logger.success(f"✅ Đã lưu {len(products)} sản phẩm và {len(reviews)} đánh giá.")
     except Exception as e:
-        logger.error(f"❌ Lỗi khi cào dữ liệu: {e}")
-        return
+        logger.error(f"❌ Có lỗi trong quá trình cào: {e}. Hệ thống vẫn sẽ lưu những dữ liệu đã cào được...")
+        # Xóa lệnh `return` ở đây để nó tiếp tục chạy ETL Pipeline phía dưới
         
     # 3. Chạy ETL Pipeline
     run_etl_pipeline()

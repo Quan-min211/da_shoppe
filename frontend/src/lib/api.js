@@ -38,6 +38,10 @@ export async function getSentimentOverview() {
   return fetchAPI("/api/analytics/sentiment-overview");
 }
 
+export async function getKeywordStats() {
+  return fetchAPI("/api/analytics/keyword-stats");
+}
+
 // === Products ===
 
 export async function getProducts({ page = 1, pageSize = 20, search = "", sortBy = "avg_rating", sortOrder = "desc" } = {}) {

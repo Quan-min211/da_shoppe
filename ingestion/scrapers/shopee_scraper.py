@@ -353,10 +353,18 @@ class ShopeeScraper(BaseScraper):
         Returns:
             Tuple (danh sách products, danh sách tất cả reviews)
         """
-        products = self.scrape_products(keyword, max_pages)
+        products = []
         all_reviews = []
         
+        try:
+            products = self.scrape_products(keyword, max_pages)
+        except Exception as e:
+            self.logger.error(f"❌ Lỗi nghiêm trọng khi cào sản phẩm (Dừng sớm): {e}")
+            # Lấy lại những gì đã cào được trước khi lỗi
+            products = self._collected_items
+            
         if not products:
+            self.logger.warning("⚠️ Không có sản phẩm nào được cào, kết thúc sớm.")
             return products, all_reviews
             
         total = len(products)
@@ -370,8 +378,13 @@ class ShopeeScraper(BaseScraper):
                 continue
                 
             self.logger.info(f"[{i}/{total}] Sản phẩm: {prod.get('name', '')[:30]}...")
-            reviews = self.scrape_reviews(shop_id, item_id, max_reviews)
-            all_reviews.extend(reviews)
+            
+            try:
+                reviews = self.scrape_reviews(shop_id, item_id, max_reviews)
+                all_reviews.extend(reviews)
+            except Exception as e:
+                self.logger.error(f"❌ Lỗi nghiêm trọng khi cào reviews (Dừng sớm): {e}")
+                break  # Thoát vòng lặp reviews nếu gặp lỗi lớn (ví dụ mất kết nối)
             
             if i < total:
                 time.sleep(self.request_delay)

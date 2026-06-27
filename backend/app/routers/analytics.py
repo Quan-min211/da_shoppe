@@ -64,3 +64,17 @@ async def get_sentiment_overview():
     - Số lượng và tỷ lệ % review **trung lập** (neutral)
     """
     return data_service.get_sentiment_overview()
+
+
+@router.get("/keyword-stats", summary="Thống kê theo từ khóa")
+async def get_keyword_stats():
+    """
+    Trả về thống kê chi tiết cho từng từ khóa đã cào:
+    - Tên keyword
+    - Số lượng sản phẩm
+    - Giá trung bình
+    - Rating trung bình
+    - Tổng số đánh giá
+    - Phân bố rating (1-5 sao)
+    """
+    return data_service.get_keyword_stats()
