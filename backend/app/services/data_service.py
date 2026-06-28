@@ -153,7 +153,7 @@ class DataService:
                     round(float(group["price"].mean()), 0) if "price" in group.columns else 0
                 ),
                 "avg_rating": (
-                    round(float(group["avg_rating"].mean()), 2) 
+                    round(float(group["avg_rating"].mean()), 2)
                     if "avg_rating" in group.columns else 0
                 ),
                 "total_reviews": (
