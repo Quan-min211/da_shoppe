@@ -141,15 +141,24 @@ class DataService:
             star_dist = {}
             for star in range(1, 6):
                 col_name = f"star_{star}_count"
-                star_dist[f"star_{star}"] = int(group[col_name].sum()) if col_name in group.columns else 0
+                star_dist[f"star_{star}"] = (
+                    int(group[col_name].sum()) if col_name in group.columns else 0
+                )
             star_dist["total"] = sum(star_dist.values())
 
             results.append({
                 "keyword": str(kw),
                 "total_products": int(len(group)),
-                "avg_price": round(float(group["price"].mean()), 0) if "price" in group.columns else 0,
-                "avg_rating": round(float(group["avg_rating"].mean()), 2) if "avg_rating" in group.columns else 0,
-                "total_reviews": int(group["total_reviews"].sum()) if "total_reviews" in group.columns else 0,
+                "avg_price": (
+                    round(float(group["price"].mean()), 0) if "price" in group.columns else 0
+                ),
+                "avg_rating": (
+                    round(float(group["avg_rating"].mean()), 2) 
+                    if "avg_rating" in group.columns else 0
+                ),
+                "total_reviews": (
+                    int(group["total_reviews"].sum()) if "total_reviews" in group.columns else 0
+                ),
                 "rating_distribution": star_dist,
             })
 
