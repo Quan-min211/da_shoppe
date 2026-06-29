@@ -6,6 +6,7 @@ import KpiCard from "@/components/KpiCard";
 import RatingChart from "@/components/RatingChart";
 import SentimentChart from "@/components/SentimentChart";
 import TopProductsTable from "@/components/TopProductsTable";
+import ScatterChart from "@/components/ScatterChart";
 import ProductModal from "@/components/ProductModal";
 import ReviewsModal from "@/components/ReviewsModal";
 import { getOverview, getRatingDistribution, getTopProducts, getSentimentOverview, getKeywordStats } from "@/lib/api";
@@ -27,6 +28,7 @@ export default function OverviewPage() {
   const [sentiment, setSentiment] = useState(null);
   const [keywordStats, setKeywordStats] = useState([]);
   const [selectedKeywords, setSelectedKeywords] = useState([]);
+  const [ratingFilter, setRatingFilter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -46,7 +48,7 @@ export default function OverviewPage() {
         const [ov, rd, tp, sm, ks] = await Promise.all([
           getOverview(),
           getRatingDistribution(),
-          getTopProducts("avg_rating", 5),
+          getTopProducts("avg_rating", 30),
           getSentimentOverview(),
           getKeywordStats(),
         ]);
@@ -114,6 +116,33 @@ export default function OverviewPage() {
           </div>
         </div>
 
+        {/* Global Filter Bar */}
+        <div className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-gray-500 uppercase">Thời gian:</span>
+              <select className="bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-[#7C5CFC]/20 text-[#1A1A2E]">
+                <option>Tất cả thời gian</option>
+                <option>7 ngày qua</option>
+                <option>30 ngày qua</option>
+              </select>
+            </div>
+            <div className="w-px h-5 bg-gray-200 hidden sm:block"></div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-gray-500 uppercase">Khoảng giá:</span>
+              <select className="bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-[#7C5CFC]/20 text-[#1A1A2E]">
+                <option>Tất cả mức giá</option>
+                <option>Dưới 100k</option>
+                <option>100k - 500k</option>
+                <option>Trên 500k</option>
+              </select>
+            </div>
+          </div>
+          <button className="text-xs font-semibold text-white bg-[#1A1A2E] px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors">
+            Áp dụng bộ lọc
+          </button>
+        </div>
+
         {/* Tổng quan KPI */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 stagger-children">
           <KpiCard
@@ -121,12 +150,16 @@ export default function OverviewPage() {
             value={overview?.total_products?.toLocaleString("vi-VN") || "0"}
             icon={Package}
             color="purple"
+            trend="+12%"
+            sparklineData={[{val: 10}, {val: 15}, {val: 20}, {val: 22}, {val: 25}, {val: 30}, {val: 28}, {val: 35}]}
           />
           <KpiCard
             title="Từ khóa đã cào"
             value={overview?.total_keywords || 0}
             icon={Hash}
             color="green"
+            trend="+2"
+            sparklineData={[{val: 1}, {val: 1}, {val: 2}, {val: 2}, {val: 3}, {val: 3}, {val: 4}, {val: 4}]}
             subtitle={keywordStats.map(k => k.keyword).join(", ")}
           />
           <KpiCard
@@ -134,12 +167,16 @@ export default function OverviewPage() {
             value={`${(overview?.avg_rating || 0).toFixed(1)} ⭐`}
             icon={Star}
             color="amber"
+            trend="+0.1"
+            sparklineData={[{val: 4.5}, {val: 4.6}, {val: 4.5}, {val: 4.7}, {val: 4.6}, {val: 4.8}, {val: 4.8}, {val: 4.9}]}
           />
           <KpiCard
             title="Tổng đánh giá"
             value={(overview?.total_reviews || 0).toLocaleString("vi-VN")}
             icon={MessageSquare}
             color="rose"
+            trend="+45%"
+            sparklineData={[{val: 100}, {val: 120}, {val: 130}, {val: 150}, {val: 200}, {val: 250}, {val: 280}, {val: 350}]}
           />
         </div>
 
@@ -264,12 +301,24 @@ export default function OverviewPage() {
         )}
 
         {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          <RatingChart data={ratingDist} height={260} title="Phân bố đánh giá (Tổng)" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <RatingChart 
+            data={ratingDist} 
+            height={280} 
+            title="Phân bố đánh giá (Tổng) — Click để lọc" 
+            onBarClick={(star) => setRatingFilter(prev => prev === star ? null : star)}
+          />
           <SentimentChart data={sentiment} />
+          <ScatterChart 
+            data={topProducts.filter(p => p.price && p.avg_rating && p.total_reviews).map(p => ({
+              name: p.name, price: p.price, rating: p.avg_rating, reviews: p.total_reviews
+            }))} 
+          />
           <TopProductsTable
-            products={topProducts}
-            title="🏆 Top 5 sản phẩm — Rating"
+            products={topProducts
+              .filter(p => !ratingFilter || Math.round(p.avg_rating || 0) === ratingFilter)
+              .slice(0, 5)}
+            title={ratingFilter ? `🏆 Top 5 sản phẩm (${ratingFilter}⭐)` : "🏆 Top 5 sản phẩm — Rating"}
             onClickProduct={(p) => setSelectedProduct(p)}
           />
         </div>

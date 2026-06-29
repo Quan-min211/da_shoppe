@@ -7,7 +7,7 @@ import {
 const COLORS = ["#EF4444", "#F97316", "#EAB308", "#22C55E", "#7C5CFC"];
 const LABELS = ["1 ⭐", "2 ⭐", "3 ⭐", "4 ⭐", "5 ⭐"];
 
-export default function RatingChart({ data, height = 280, title = "Phân bố đánh giá" }) {
+export default function RatingChart({ data, height = 280, title = "Phân bố đánh giá", onBarClick }) {
   if (!data) return null;
 
   const chartData = [
@@ -39,7 +39,13 @@ export default function RatingChart({ data, height = 280, title = "Phân bố đ
             }}
             cursor={{ fill: "rgba(124, 92, 252, 0.06)" }}
           />
-          <Bar dataKey="value" radius={[8, 8, 0, 0]} maxBarSize={48}>
+          <Bar 
+            dataKey="value" 
+            radius={[8, 8, 0, 0]} 
+            maxBarSize={48}
+            cursor={onBarClick ? "pointer" : "default"}
+            onClick={(data, index) => onBarClick && onBarClick(index + 1)}
+          >
             {chartData.map((_, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index]} />
             ))}

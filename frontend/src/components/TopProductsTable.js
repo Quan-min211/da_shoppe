@@ -1,20 +1,60 @@
 "use client";
 
-import { Star } from "lucide-react";
+import { Star, Download } from "lucide-react";
 
 export default function TopProductsTable({ products, title = "Top sản phẩm", onClickProduct }) {
+  const handleExportCSV = () => {
+    if (!products || products.length === 0) return;
+    
+    // Create CSV content
+    const headers = ["Tên sản phẩm", "Shop", "Giá", "Rating", "Đánh giá"];
+    const csvRows = [headers.join(",")];
+    
+    products.forEach(p => {
+      const name = `"${(p.name || "").replace(/"/g, '""')}"`;
+      const shop = `"${(p.shop_name || "").replace(/"/g, '""')}"`;
+      const price = p.price || 0;
+      const rating = p.avg_rating || 0;
+      const reviews = p.total_reviews || 0;
+      csvRows.push([name, shop, price, rating, reviews].join(","));
+    });
+    
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csvRows.join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "top_products.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (!products || products.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <h3 className="text-base font-semibold text-[#1A1A2E] mb-4">{title}</h3>
-        <p className="text-gray-400 text-sm">Chưa có dữ liệu.</p>
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col justify-center h-full">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-semibold text-[#1A1A2E]">{title}</h3>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-gray-400 text-sm">Chưa có dữ liệu.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-      <h3 className="text-base font-semibold text-[#1A1A2E] mb-4">{title}</h3>
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col h-full">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-semibold text-[#1A1A2E]">{title}</h3>
+        <button 
+          onClick={handleExportCSV}
+          className="text-xs flex items-center gap-1.5 text-gray-500 hover:text-[#7C5CFC] transition-colors"
+          title="Tải xuống CSV"
+        >
+          <Download className="w-3.5 h-3.5" />
+          <span>Export</span>
+        </button>
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
